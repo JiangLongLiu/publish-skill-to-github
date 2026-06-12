@@ -1,6 +1,6 @@
 ---
 name: publish-skill-to-github
-description: 将 Qoder skill 发布到 GitHub 仓库，包括创建仓库、初始化 Git、添加文档和推送。当用户提到发布 skill、开源 skill、上传到 GitHub 或分享 skill 时使用此 skill。
+description: 将 Qoder skill 发布或更新到 GitHub 仓库。触发词：发布 skill、更新 skill、开源 skill、上传到 GitHub、分享 skill、推送 skill 更新。
 ---
 
 # 发布 Skill 到 GitHub
@@ -108,10 +108,13 @@ skill-name/
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## Feedback
 
-- 🐛 [Report Issues](https://github.com/USERNAME/skill-name/issues)
-- 💡 [Feature Requests](https://github.com/USERNAME/skill-name/issues)
+> Issues are intentionally disabled on this repository (see publish workflow Step 9).
+> For bug reports or feature requests:
+>
+> - 📧 Reach out via the maintainer's GitHub profile
+> - 🍴 Fork the repo and send a Pull Request
 
 ## ⭐ Show Your Support
 
@@ -215,10 +218,12 @@ skill-name/
 
 本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
 
-## 支持
+## 反馈
 
-- 🐛 [报告问题](https://github.com/USERNAME/skill-name/issues)
-- 💡 [功能请求](https://github.com/USERNAME/skill-name/issues)
+> 本仓库**未启用 Issues**（见发布流程步骤 9）。如需反馈：
+>
+> - 📧 通过维护者的 GitHub 主页联系
+> - 🍴 Fork 仓库后提交 Pull Request
 
 ## ⭐ 支持我们
 
@@ -386,6 +391,35 @@ git push -u origin main
 }
 ```
 
+### 步骤 9: 关闭 Issues（默认行为）
+
+**默认动作**：发布完成后立即关闭 GitHub Issues 功能。
+
+**理由**：
+- skill 仓库通常不需要 issue tracker（用户反馈走 PR 或 GitHub 主页联系即可）
+- 避免无人维护的 issue 堆积影响仓库观感
+- 如果用户**明确要求保留** issues，则跳过此步
+
+**首选方式（gh CLI，已认证）：**
+
+```bash
+gh repo edit <USERNAME>/<skill-name> --enable-issues=false
+# 验证
+gh repo view <USERNAME>/<skill-name> --json hasIssuesEnabled,url
+```
+
+**备选方式（GitHub REST API，需要 token）：**
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer $GITHUB_TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  https://api.github.com/repos/<USERNAME>/<skill-name> \
+  -d '{"has_issues":false}'
+```
+
+**配套要求**：在 README.md / README_zh.md 中**不要写**指向 `/issues` 的 "Report Issues" / "Feature Requests" 链接，改成 `## Feedback / ## 反馈` 段落，引导用户走 PR 或 GitHub 主页（模板已示范，见步骤 0）。
+
 ## 自动化脚本
 
 使用提供的辅助脚本简化发布流程：
@@ -552,6 +586,76 @@ bash scripts/validate-skill.sh <skill-path>
 git remote set-url origin https://github.com/USERNAME/existing-repo.git
 git push -u origin main
 ```
+
+---
+
+## 更新已有 Skill
+
+当用户说"更新 skill"、"推送 skill 更新"时，使用以下流程：
+
+### 前提条件
+
+- GitHub 上已有对应仓库
+- 本地 skill 目录有新的修改
+
+### 更新流程
+
+#### 步骤 1：检查本地修改
+
+```bash
+cd ~/.qoder/skills/<skill-name>
+git status --short
+```
+
+#### 步骤 2：更新文档（如有需要）
+
+如果修改了 SKILL.md 功能，同步更新：
+- `README.md`（英文）
+- `README_zh.md`（中文）
+
+#### 步骤 3：提交并推送
+
+```bash
+# 添加修改
+git add .
+
+# 提交（使用 conventional commits 格式）
+git commit -m "feat: <描述更新内容>"
+
+# 推送到 GitHub
+git push origin main
+```
+
+#### 步骤 4：验证更新
+
+```bash
+# 检查远程提交
+gh repo view <USERNAME>/<skill-name> --json name,pushedAt
+```
+
+### 首次初始化（本地目录无 git）
+
+如果 skill 目录还没有初始化 git：
+
+```bash
+cd ~/.qoder/skills/<skill-name>
+
+# 初始化并关联远程仓库
+git init
+git remote add origin https://github.com/<USERNAME>/<skill-name>.git
+
+# 添加文件并推送
+git add .
+git commit -m "feat: <skill 描述>"
+git branch -M main
+git push -u origin main --force
+```
+
+### 注意事项
+
+- 更新前先检查 `git status` 确认修改内容
+- 如果是新功能，记得更新 README 文档
+- 使用 `--force` 仅在首次初始化时使用，后续更新用普通 push
 
 ## 附加资源
 
